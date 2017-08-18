@@ -1,7 +1,7 @@
 #' Send Email with mailgun API
 #' 
 #' @export
-#' @import httr
+#' @import httr jsonlite
 #' 
 mg_send_email <- function(from, to, cc = NULL, bcc = NULL, subject = NULL, 
                     text = NULL, html = NULL, attachment = NULL, 
@@ -27,7 +27,7 @@ mg_send_email <- function(from, to, cc = NULL, bcc = NULL, subject = NULL,
   resp <- POST(url, authenticate("api", mailgun_key),
        body = list(
          from = from, to = to, cc = cc, bcc = bcc, subject = subject, 
-         text = text, html = html, attachment = attachment, 
+         text = text, html = html, attachment = attachment_file, 
          inline = inline, tag = tag, campaign = campaign, 
          dkim = dkim, deliverytime = deliverytime, testmode = testmode, 
          tracking = tracking, tracking_clicks = tracking_clicks,
