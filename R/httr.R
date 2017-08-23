@@ -145,7 +145,8 @@ mg_add_email_mailing_list <- function(mail_list_address, address, name = NULL, v
 }
 
 #' @export
-mg_delete_address_mailing_list <- function(mail_list_address, address) {
+mg_delete_address_mailing_list <- function(mail_list_address, address, mailgun_key = Sys.getenv("mailgun_key"),
+                                           mailgun_domain = Sys.getenv("mailgun_domain")) {
   base_url <- "https://api.mailgun.net/"
   
   path <- paste(sep = "/", "v3", "lists", mail_list_address, "members", address)
