@@ -9,7 +9,7 @@ mg_send_email <- function(from, to, cc = NULL, bcc = NULL, subject = NULL,
                     dkim = NULL, deliverytime = NULL, testmode = NULL, 
                     tracking = NULL, tracking_clicks = NULL,
                     tracking_opens = NULL, required_tls = NULL, 
-                    skip_verification = NULL, 
+                    skip_verification = NULL, recipient_variables = NULL,
                     x_my_header = NULL, my_var = NULL,
                     mailgun_key = Sys.getenv("mailgun_key"),
                     mailgun_domain = Sys.getenv("mailgun_domain")) {
@@ -22,19 +22,21 @@ mg_send_email <- function(from, to, cc = NULL, bcc = NULL, subject = NULL,
   
   if (!is.null(attachment)) {
     attachment_file <- upload_file(attachment)
+  } else {
+    attachment_file <- NULL
   }
   
   resp <- POST(url, authenticate("api", mailgun_key),
-       body = list(
-         from = from, to = to, cc = cc, bcc = bcc, subject = subject, 
+       body = c(structure(as.list(to), .Names = rep.int("to", length(to))),list(
+         from = from, cc = cc, bcc = bcc, subject = subject, 
          text = text, html = html, attachment = attachment_file, 
-         inline = inline, tag = tag, campaign = campaign, 
+         inline = inline, tag = tag, campaign = campaign, `recipient-variables` = recipient_variables,
          dkim = dkim, deliverytime = deliverytime, testmode = testmode, 
          tracking = tracking, tracking_clicks = tracking_clicks,
          tracking_opens = tracking_opens, required_tls = required_tls, 
          skip_verification = skip_verification, 
          x_my_header = x_my_header, my_var = my_var
-       ), encode = "multipart")
+       )), encode = "multipart")
   
   if (http_type(resp) != "application/json") {
     stop("mailgun API did not return JSON.", call. = FALSE)
@@ -122,11 +124,35 @@ mg_add_email_mailing_list <- function(mail_list_address, address, name = NULL, v
   resp <- POST(url, authenticate("api", mailgun_key),
                body = list(
                  address = address,
-                 name = name,
+                 name = jsonlite::unbox(name),
                  vars = vars,
                  subscribed = subscribed,
                  upsert = upsert
                ), encode = "multipart")
+  
+  if (http_type(resp) != "application/json") {
+    stop("mailgun API did not return JSON.", call. = FALSE)
+  }
+  
+  if (http_error(resp)) {
+    stop(paste0("mailgun API errored:\n", 
+                http_status(resp)$message), call. = FALSE)
+  }
+  
+  parsed <- fromJSON(content(resp, "text", encoding = "UTF-8"), simplifyVector = FALSE)
+  
+  parsed
+}
+
+#' @export
+mg_delete_address_mailing_list <- function(mail_list_address, address) {
+  base_url <- "https://api.mailgun.net/"
+  
+  path <- paste(sep = "/", "v3", "lists", mail_list_address, "members", address)
+  
+  url <- modify_url(base_url, path = path)
+  
+  resp <- DELETE(url, authenticate("api", mailgun_key))
   
   if (http_type(resp) != "application/json") {
     stop("mailgun API did not return JSON.", call. = FALSE)
@@ -172,3 +198,28 @@ mg_edit_email_mailing_list <- function(mail_list_address, address, name = NULL, 
   parsed
 }
 
+#' @export
+mg_get_unsubscribed <- function(mailgun_key = Sys.getenv("mailgun_key"),
+                                mailgun_domain = Sys.getenv("mailgun_domain")) {
+  base_url <- "https://api.mailgun.net/"
+  
+  path <- paste(sep = "/", "v3", mailgun_domain, "unsubscribes")
+  
+  url <- modify_url(base_url, path = path)
+  
+  resp <- GET(url, authenticate("api", mailgun_key))
+  
+  if (http_type(resp) != "application/json") {
+    stop("mailgun API did not return JSON.", call. = FALSE)
+  }
+  
+  if (http_error(resp)) {
+    stop(paste0("mailgun API errored:\n", 
+                http_status(resp)$message), call. = FALSE)
+  }
+  
+  parsed <- fromJSON(content(resp, "text", encoding = "UTF-8"), simplifyVector = FALSE)
+  
+  parsed
+  
+}

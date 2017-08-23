@@ -9,7 +9,7 @@ mg_send_email(from, to, cc = NULL, bcc = NULL, subject = NULL,
   tag = NULL, campaign = NULL, dkim = NULL, deliverytime = NULL,
   testmode = NULL, tracking = NULL, tracking_clicks = NULL,
   tracking_opens = NULL, required_tls = NULL, skip_verification = NULL,
-  x_my_header = NULL, my_var = NULL,
+  recipient_variables = NULL, x_my_header = NULL, my_var = NULL,
   mailgun_key = Sys.getenv("mailgun_key"),
   mailgun_domain = Sys.getenv("mailgun_domain"))
 }

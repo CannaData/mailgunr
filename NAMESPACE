@@ -2,8 +2,10 @@
 
 S3method(print,mailgun_result)
 export(mg_add_email_mailing_list)
+export(mg_delete_address_mailing_list)
 export(mg_edit_email_mailing_list)
 export(mg_get_mailing_lists)
+export(mg_get_unsubscribed)
 export(mg_make_mailing_list)
 export(mg_send_email)
 import(httr)
