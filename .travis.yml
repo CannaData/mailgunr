@@ -6,3 +6,4 @@ cache: packages
 after_success:
   - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && bash
   deploy.sh
+warnings_are_errors: false
